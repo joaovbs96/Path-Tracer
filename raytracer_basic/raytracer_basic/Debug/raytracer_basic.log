@@ -1,0 +1,23 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(391,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (raytracer_basic.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  main.cpp
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\vec3.h(99): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\vec3.h(179): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\hitable_list.h(26): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\camera.h(28): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\material.h(75): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\material.h(118): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(18): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(30): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(31): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(31): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(44): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(44): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(46): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(48): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(51): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(51): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(54): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(61): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(62): warning C4305: 'argument': truncation from 'double' to 'float'
+c:\users\pichau\desktop\unicamp\ic 2019\ray-tracing-one-weekend\raytracer_basic\raytracer_basic\main.cpp(93): warning C4305: 'initializing': truncation from 'double' to 'float'
+  raytracer_basic.vcxproj -> C:\Users\Pichau\Desktop\UNICAMP\IC 2019\Ray-Tracing-One-Weekend\raytracer_basic\Debug\RayTracing_One_Week.exe
