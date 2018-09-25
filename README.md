@@ -3,8 +3,7 @@ Implementation of Peter Shirley's 'Ray Tracing in One Weekend'.
 
 ![CH12 Result](img.png)
 
-1920x1080, 50 samples
-Full album, chapter by chapter: https://imgur.com/a/wFcnKnC
+1920x1080, 50 samples. Full album, separated by chapter: https://imgur.com/a/wFcnKnC
 
 - Each material has its own file, which helps modularization.
 - Supports PNG output, through the usage of STB Image Write - http://nothings.org/stb/stb_image_write.h
