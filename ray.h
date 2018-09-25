@@ -6,6 +6,10 @@ class ray {
 public:
 	ray() {}
 
+	// A: ray origin
+	// B: ray direction
+	// t: parameter that changes 'destination' along ray/half-line
+
 	ray(const vec3& a, const vec3& b) {
 		A = a;
 		B = b;

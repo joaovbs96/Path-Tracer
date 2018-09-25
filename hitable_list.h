@@ -22,6 +22,8 @@ bool hitable_list::hit(const ray& r, float t_min, float t_max, hit_record& rec) 
 	bool hit_anything = false;
 	double closest_so_far = t_max;
 
+	// Iterates list of hitables to check if ray intersects/hits anything
+	// If so, returns true. Otherwise, false.
 	for (int i = 0; i < list_size; i++) {
 		if (list[i]->hit(r, t_min, closest_so_far, temp_rec)) {
 			hit_anything = true;

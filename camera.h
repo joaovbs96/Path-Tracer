@@ -35,7 +35,6 @@ public:
 		u = unit_vector(cross(vup, w));
 		v = cross(w, u);
 
-		// confirmar equação
 		lower_left_corner = origin - focus_dist * (half_width * u + half_height * v + w);
 		horizontal = 2 * half_width * focus_dist * u;
 		vertical = 2 * half_height * focus_dist * v;
