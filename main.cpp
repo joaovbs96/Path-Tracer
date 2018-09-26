@@ -4,9 +4,11 @@
 #include <float.h>
 #include <random>
 
-#include "sphere.h"
-#include "hitable_list.h"
 #include "camera.h"
+
+#include "hitable_list.h"
+#include "sphere.h"
+#include "mesh.h"
 
 #include "lambertian.h"
 #include "metal.h"
@@ -15,6 +17,8 @@
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
+
+#include "OBJ_Loader.h"
 
 std::random_device device;
 std::mt19937 gen(device());
@@ -44,6 +48,56 @@ vec3 color(const ray& r, hitable *world, int depth) {
 	}
 }
 
+triangle *load_and_convert(vec3 pos) {
+	objl::Loader Loader;
+
+	std::cout << "Loading Model" << std::endl;
+	bool loadout = Loader.LoadFile("box_stack.obj");
+	std::cout << "Model Loaded" << std::endl;
+
+	// check if obj was loaded
+	if (loadout) {
+
+		mesh **meshL = new mesh*[Loader.LoadedMeshes.size()];
+
+		// Go through each loaded mesh and out its contents
+		for (int i = 0; i < Loader.LoadedMeshes.size(); i++) {
+			// Copy one of the loaded meshes to be our current mesh
+			std::cout << "Converting Mesh " << (i+1) << "/" << Loader.LoadedMeshes.size() << std::endl;
+			objl::Mesh curMesh = Loader.LoadedMeshes[i];
+
+			int size = curMesh.Indices.size();
+			triangle **list = new triangle*[size];
+
+			// Go through every 3rd index and print the
+			//	triangle that these indices represent
+			for (int j = 0; j < curMesh.Indices.size(); j += 3) {
+				int ia = curMesh.Indices[j];
+				vec3 a(curMesh.Vertices[ia].Position.X, curMesh.Vertices[ia].Position.Y, curMesh.Vertices[ia].Position.Z);
+				
+				int ib = curMesh.Indices[j + 1];
+				vec3 b(curMesh.Vertices[ib].Position.X, curMesh.Vertices[ib].Position.Y, curMesh.Vertices[ib].Position.Z);
+				
+				int ic = curMesh.Indices[j + 2];
+				vec3 c(curMesh.Vertices[ic].Position.X, curMesh.Vertices[ic].Position.Y, curMesh.Vertices[ic].Position.Z);
+				
+				list[j / 3] = new triangle(a + pos, b + pos, c + pos, new dieletric(1.5));
+			}
+			meshL[i] = new mesh(list, size);
+		}
+		std::cout << "Meshes Converted" << std::endl;
+		return new meshList(meshL, Loader.LoadedMeshes.size());
+	}
+
+	// If not output an error
+	else {
+		// Output Error
+		std::cout << "Failed to Load File. May have failed to find it or it was not an .obj file.\n";
+		return NULL;
+	}
+
+}
+
 hitable *random_scene() {
 	int n = 500;
 	hitable **list = new hitable*[n + 1];
@@ -71,16 +125,17 @@ hitable *random_scene() {
 
 	list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dieletric(1.5));
 	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
-	list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
+	//list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
+	list[i++] = load_and_convert(vec3(4, 1, 0));
 
 	return new hitable_list(list, i);
 }
 
 int main() {
 	// main parameters
-	int w = 1280;
-	int h = 720;
-	int samples = 50;
+	int w = 30;
+	int h = 20;
+	int samples = 10;
 
 	// pixel array
 	unsigned char *arr = (unsigned char *)malloc(w * h * 3 * sizeof(unsigned char));
