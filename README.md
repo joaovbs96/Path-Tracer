@@ -11,6 +11,12 @@ Implementation of Peter Shirley's 'Ray Tracing in One Weekend'.
 - Triangle intersection code based on Morgan McGuire's 'The Graphics Codex' - http://graphicscodex.com
 - Supports OBJ models, through Bly7's OBJ Loader - https://github.com/Bly7/OBJ-Loader
 
+## TODO:
+- Fix display of metal and dieletric materials on models
+- Add support to MTL materials
+- Change structures to C++ STD structures
+- Change common pointers to shared pointers
+
 All credits go to Peter Shirley. For more info and how to get the books: https://twitter.com/Peter_shirley/status/1029342221139509249
 
 Implemented during an undergraduate research project mentored by prof. Hélio Pedrini at the Institute of Computing - Unicamp.
