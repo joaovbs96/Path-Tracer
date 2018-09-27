@@ -23,13 +23,13 @@ bool triangle::hit(const ray& r, float t_min, float t_max, hit_record& rec) cons
 
 	// face normal
 	vec3 n = cross(e1, e2); // cross(v1, v2) is orthogonal to the triangle plane
-	n.make_unit_vector(); // TODO: conferir se é unit vector
+	//n.make_unit_vector(); // TODO: conferir se é unit vector
 
 	vec3 q = cross(r.direction(), e2);
 	float aNum = dot(e1, q);
 
 	// Backfacing / nearly parallel, or close to the limit of precision ?
-	if ((dot(n, r.direction()) >= 0) || (abs(aNum) <= (0.001))) { // TODO: abs works?
+	if ((dot(n, r.direction()) >= 0) || (abs(aNum) <= (1e-7))) { // TODO: abs works?
 		return false;
 	}
 
@@ -55,6 +55,7 @@ bool triangle::hit(const ray& r, float t_min, float t_max, hit_record& rec) cons
 	}
 	
 	return false;
+
 }
 
 #endif // ! TRIANGLEH

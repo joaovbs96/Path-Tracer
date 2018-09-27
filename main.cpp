@@ -3,6 +3,7 @@
 #include <strstream>
 #include <float.h>
 #include <random>
+#include <vector>
 
 #include "camera.h"
 
@@ -52,25 +53,27 @@ triangle *load_and_convert(vec3 pos) {
 	objl::Loader Loader;
 
 	std::cout << "Loading Model" << std::endl;
-	bool loadout = Loader.LoadFile("box_stack.obj");
+	bool loadout = Loader.LoadFile("bunny.obj");
 	std::cout << "Model Loaded" << std::endl;
+
+	material *m = new dieletric(1.5);
 
 	// check if obj was loaded
 	if (loadout) {
 
-		mesh **meshL = new mesh*[Loader.LoadedMeshes.size()];
+		// list of triangles
+		std::vector<triangle> triangles;
 
-		// Go through each loaded mesh and out its contents
+		// Go through each loaded mesh
 		for (int i = 0; i < Loader.LoadedMeshes.size(); i++) {
 			// Copy one of the loaded meshes to be our current mesh
 			std::cout << "Converting Mesh " << (i+1) << "/" << Loader.LoadedMeshes.size() << std::endl;
 			objl::Mesh curMesh = Loader.LoadedMeshes[i];
 
-			int size = curMesh.Indices.size();
-			triangle **list = new triangle*[size];
+			int curSize = curMesh.Indices.size();
 
 			// Go through every 3rd index and print the
-			//	triangle that these indices represent
+			// save that these indices represent
 			for (int j = 0; j < curMesh.Indices.size(); j += 3) {
 				int ia = curMesh.Indices[j];
 				vec3 a(curMesh.Vertices[ia].Position.X, curMesh.Vertices[ia].Position.Y, curMesh.Vertices[ia].Position.Z);
@@ -81,12 +84,11 @@ triangle *load_and_convert(vec3 pos) {
 				int ic = curMesh.Indices[j + 2];
 				vec3 c(curMesh.Vertices[ic].Position.X, curMesh.Vertices[ic].Position.Y, curMesh.Vertices[ic].Position.Z);
 				
-				list[j / 3] = new triangle(a + pos, b + pos, c + pos, new dieletric(1.5));
+				triangles.push_back(triangle(a + pos, b + pos, c + pos, m));
 			}
-			meshL[i] = new mesh(list, size);
 		}
 		std::cout << "Meshes Converted" << std::endl;
-		return new meshList(meshL, Loader.LoadedMeshes.size());
+		return new mesh(triangles);
 	}
 
 	// If not output an error
@@ -123,19 +125,20 @@ hitable *random_scene() {
 		}
 	}
 
-	list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dieletric(1.5));
-	list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
+	//list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dieletric(1.5));
+	//list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
 	//list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
-	list[i++] = load_and_convert(vec3(4, 1, 0));
+	list[i++] = load_and_convert(vec3(0, 0, 0));
+	//list[i++] = new triangle(vec3(-3, 0, 0), vec3(3, 0, 0), vec3(1, 3, 0), new lambertian(vec3(dist(gen) * dist(gen), dist(gen) * dist(gen), dist(gen) * dist(gen))));
 
 	return new hitable_list(list, i);
 }
 
 int main() {
 	// main parameters
-	int w = 30;
-	int h = 20;
-	int samples = 10;
+	int w = 300;
+	int h = 200;
+	int samples = 1;
 
 	// pixel array
 	unsigned char *arr = (unsigned char *)malloc(w * h * 3 * sizeof(unsigned char));
