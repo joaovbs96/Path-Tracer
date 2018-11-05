@@ -1,25 +1,29 @@
-#ifndef SPHEREH
-#define SPHEREH
+#ifndef MOVINGSPHEREH
+#define MOVINGSPHEREH
 
 #include "hitable.h"
 
 // derivates from hitable
-class sphere : public hitable {
+class moving_sphere : public hitable {
 public:
-	sphere() {}
+	moving_sphere() {}
 
-	sphere(vec3 cen, float r, material *m) : center(cen), radius(r), mat_ptr(m) {};
+	moving_sphere(vec3 cen0, vec3 cen1, float t0, float t1, float r, material *m) : 
+		center0(cen0), center1(cen1), time0(t0), time1(t1), radius(r), mat_ptr(m) {};
 
 	virtual bool hit(const ray& r, float tmin, float tman, hit_record& rec) const;
 	virtual bool bounding_box(float t0, float t1, aabb& box) const;
+	
+	vec3 center(float time) const;
 
-	vec3 center;
+	vec3 center0, center1;
+	float time0, time1;
 	float radius;
 	material *mat_ptr;
 };
 
-bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-	vec3 oc = r.origin() - center;
+bool moving_sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
+	vec3 oc = r.origin() - center(r.time());
 
 	// if the ray hits the sphere, the following equation has two roots:
 	// t²dot(B, B) + 2tdot(B,A-C) + dot(A-C,A-C) - R² = 0
@@ -44,8 +48,8 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
 		if (temp < t_max && temp > t_min) {
 			rec.t = temp;
 			rec.p = r.point_at_parameter(rec.t);
-			get_sphere_uv((rec.p - center) / radius, rec.u, rec.v);
-			rec.normal = (rec.p - center) / radius; // get normal
+			get_sphere_uv((rec.p - center(r.time())) / radius, rec.u, rec.v);
+			rec.normal = (rec.p - center(r.time())) / radius; // get normal
 			rec.mat_ptr = mat_ptr; // get material of hitpoint
 			return true;
 		}
@@ -57,8 +61,8 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
 		if (temp < t_max && temp > t_min) {
 			rec.t = temp;
 			rec.p = r.point_at_parameter(rec.t);
-			get_sphere_uv((rec.p - center) / radius, rec.u, rec.v);
-			rec.normal = (rec.p - center) / radius;
+			get_sphere_uv((rec.p - center(r.time())) / radius, rec.u, rec.v);
+			rec.normal = (rec.p - center(r.time())) / radius;
 			rec.mat_ptr = mat_ptr;
 			return true;
 		}
@@ -68,9 +72,15 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
 	return false;
 }
 
-bool sphere::bounding_box(float t0, float t1, aabb& box) const {
-	box = aabb(center - vec3(radius, radius, radius), center + vec3(radius, radius, radius));
+vec3 moving_sphere::center(float time) const {
+	return center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
+}
 
+bool moving_sphere::bounding_box(float t0, float t1, aabb& box) const {
+	aabb box0(center(t0) - vec3(radius, radius, radius), center(t0) + vec3(radius, radius, radius));
+	aabb box1(center(t1) - vec3(radius, radius, radius), center(t1) + vec3(radius, radius, radius));
+
+	box = surrounding_box(box0, box1);
 	return true;
 }
 

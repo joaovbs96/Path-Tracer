@@ -4,6 +4,26 @@
 #include <math.h>
 #include <stdlib.h>
 #include <iostream>
+#include <float.h>
+#include <random>
+
+// Random Generators
+thread_local uint32_t s_RndState = 1;
+
+// XorShift32 & randomNumber by Aras Pranckevicius
+// source: https://github.com/aras-p/ToyPathTracer/blob/master/Cpp/Source/Maths.cpp#L5-L18
+static uint32_t XorShift32() {
+	uint32_t x = s_RndState;
+	x ^= x << 13;
+	x ^= x >> 17;
+	x ^= x << 15;
+	s_RndState = x;
+	return x;
+}
+
+float randomNumber() {
+	return (XorShift32() & 0xFFFFFF) / 16777216.0f;
+}
 
 class vec3 {
 public:
@@ -13,6 +33,17 @@ public:
 		e[0] = e0;
 		e[1] = e1;
 		e[2] = e2;
+		uv[0] = 0.0;
+		uv[1] = 0.0;
+	}
+
+	// optional parameters UV for shading
+	vec3(float e0, float e1, float e2, float uu, float vv) {
+		e[0] = e0;
+		e[1] = e1;
+		e[2] = e2;
+		uv[0] = uu;
+		uv[1] = vv;
 	}
 
 	// Basic return functions
@@ -40,6 +71,13 @@ public:
 		return e[2];
 	}
 
+	inline float u() const {
+		return uv[0];
+	}
+
+	inline float v() const {
+		return uv[1];
+	}
 
 	// Operator overloading
 	// +1 * vec3
@@ -82,7 +120,7 @@ public:
 	inline void make_unit_vector();
 
 	float e[3];
-
+	float uv[2];
 };
 
 inline std::istream& operator>>(std::istream &is, vec3 &t) {

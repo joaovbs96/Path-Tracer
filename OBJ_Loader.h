@@ -670,7 +670,7 @@ namespace objl
 			#ifdef OBJL_CONSOLE_OUTPUT
 			std::cout << std::endl;
 			#endif
-
+			
 			// Deal with last mesh
 
 			if (!Indices.empty() && !Vertices.empty())
@@ -1005,6 +1005,7 @@ namespace objl
 		// Load Materials from .mtl file
 		bool LoadMaterials(std::string path)
 		{
+
 			// If the file is not a material file return false
 			if (path.substr(path.size() - 4, path.size()) != ".mtl")
 				return false;
@@ -1021,6 +1022,7 @@ namespace objl
 
 			// Go through each line looking for material variables
 			std::string curline;
+			int i = 0;
 			while (std::getline(file, curline))
 			{
 				// new material and material name
@@ -1148,6 +1150,10 @@ namespace objl
 				{
 					tempMaterial.map_bump = algorithm::tail(curline);
 				}
+				if (algorithm::firstToken(curline) == "Ke")
+				{
+					
+				}
 			}
 
 			// Deal with last material
@@ -1157,11 +1163,14 @@ namespace objl
 
 			// Test to see if anything was loaded
 			// If not return false
-			if (LoadedMaterials.empty())
+			if (LoadedMaterials.empty()) {
 				return false;
+				
+			}
 			// If so return true
-			else
+			else {
 				return true;
+			}
 		}
 	};
 }

@@ -5,25 +5,25 @@ struct hit_record;
 
 #include "ray.h"
 #include "hitable.h"
-#include <random>
 
 vec3 random_in_unit_sphere() {
-	vec3 p;
-
-	std::random_device device;
-	std::mt19937 gen(device());
-	std::uniform_real_distribution<float> dist(0.0, 1.0);
-
-	do {
-		p = 2.0 * vec3(dist(gen), dist(gen), dist(gen)) - vec3(1, 1, 1);
-	} while (p.squared_length() >= 1.0);
-
-	return p;
+	float z = randomNumber() * 2.0f - 1.0f;
+	float t = randomNumber() * 2.0f * 3.1415926f;
+	float r = sqrt((0.0 > (1.0f - z * z) ? 0.0 : (1.0f - z * z)));
+	float x = r * cos(t);
+	float y = r * sin(t);
+	vec3 res(x, y, z);
+	res *= pow(randomNumber(), 1.0 / 3.0);
+	return res;
 }
 
 class material {
 public:
 	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
+
+	virtual vec3 emitted(float u, float v, const vec3& p) const {
+		return vec3(0, 0, 0);
+	}
 };
 
 vec3 reflect(const vec3& v, const vec3& n) {
