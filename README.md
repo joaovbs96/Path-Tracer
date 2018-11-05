@@ -1,22 +1,27 @@
-# Ray Tracing in One Weekend
-
-Implementation of Peter Shirley's 'Ray Tracing in One Weekend'.
+# Ray Tracing: The Next Week
+Implementation based on Peter Shirley's Ray Tracing minibooks.
  
-![CH12 Result](img.png)
+![Final Scene - Book 1](output1.png)
+Final scene of "Ray Tracing: In a Weekend", with a 1920x1080 resolution and 50 samples per pixel.
  
-1920x1080, 50 samples. Full album, separated by chapter: https://imgur.com/a/wFcnKnC
+![Final Scene - Book 2](output2.png)
+Final scene of "Ray Tracing: The Next Week", with a 500x500 resolution and 10k samples per pixel.
   
-- Each material has its own file, which helps modularization.
+- Multithreaded implementation.
+- Each material, texture and hitable has its own file, which helps modularization.
 - Supports PNG output, through STB Image Write - http://nothings.org/stb/stb_image_write.h
 - Triangle intersection code based on Morgan McGuire's 'The Graphics Codex' - http://graphicscodex.com
-- Supports OBJ models, through Bly7's OBJ Loader - https://github.com/Bly7/OBJ-Loader
+- Supports OBJ models with (partial) MTL material support, through Bly7's OBJ Loader - https://github.com/Bly7/OBJ-Loader
+- XorShift32 random generator by Aras Pranckevicius - https://github.com/aras-p/ToyPathTracer/blob/master/Cpp/Source/Maths.cpp#L5-L18
 
 ## TODO:
-- Fix display of metal and dieletric materials on models
-- Add support to MTL materials
+- Add support to other MTL properties
 - Change structures to C++ STD structures
 - Change common pointers to shared pointers
+- Fix multithread performance issue
+- Transparency and other features: https://github.com/aromanro/RayTracer
+- Port to CUDA: https://devblogs.nvidia.com/accelerated-ray-tracing-cuda/
 
 All credits go to Peter Shirley. For more info and how to get the books: https://twitter.com/Peter_shirley/status/1029342221139509249
 
-Implemented during an undergraduate research project mentored by prof. Hélio Pedrini at the Institute of Computing/Unicamp.
+Implemented during an undergraduate research project mentored by prof. Hélio Pedrini at the Institute of Computing - Unicamp.
