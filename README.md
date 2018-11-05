@@ -2,10 +2,12 @@
 Implementation based on Peter Shirley's Ray Tracing minibooks.
  
 ![Final Scene - Book 1](output1.png)
-Final scene of "Ray Tracing: In a Weekend", with a 1920x1080 resolution and 50 samples per pixel.
+
+- Final scene of "Ray Tracing: In a Weekend", with a 1920x1080 resolution and 50 samples per pixel.
  
 ![Final Scene - Book 2](output2.png)
-Final scene of "Ray Tracing: The Next Week", with a 500x500 resolution and 10k samples per pixel.
+
+- Final scene of "Ray Tracing: The Next Week", with a 500x500 resolution and 10k samples per pixel.
   
 - Multithreaded implementation.
 - Each material, texture and hitable has its own file, which helps modularization.
