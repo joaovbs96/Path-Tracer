@@ -1,4 +1,4 @@
-# Ray Tracing: The Next Week
+# Path Tracing
 Implementation based on Peter Shirley's Ray Tracing minibooks.
  
 ![Final Scene - Book 1](output1.png)
