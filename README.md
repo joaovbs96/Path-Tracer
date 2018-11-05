@@ -8,7 +8,8 @@ Implementation based on Peter Shirley's Ray Tracing minibooks.
 ![Final Scene - Book 2](output2.png)
 
 - Final scene of "Ray Tracing: The Next Week", with a 500x500 resolution and 10k samples per pixel.
-  
+ 
+ ## Current Features:
 - Multithreaded implementation.
 - Each material, texture and hitable has its own file, which helps modularization.
 - Supports PNG output, through STB Image Write - http://nothings.org/stb/stb_image_write.h
