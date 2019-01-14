@@ -3,17 +3,26 @@
 
 #include "material.h"
 #include "texture.h"
+#include "onb.h"
 
 class lambertian : public material {
 public:
 	lambertian(texture *a) : albedo(a) {}
 
-	// light that reflects off a diffuse surface has its direction randomized
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const {
-		vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-		scattered = ray(rec.p, target - rec.p, r_in.time()); // resultant randomized ray
-		attenuation = albedo->value(rec.u, rec.v, rec.p); // attenuation, 'measure of the diffuse reflection', color dependent
+	float scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const {
+		float cosine = dot(rec.normal, unit_vector(scattered.direction()));
+		
+		if (cosine < 0)
+			cosine = 0;
 
+		return cosine / M_PI;
+	}
+
+	// light that reflects off a diffuse surface has its direction randomized
+	bool scatter(const ray& r_in, const hit_record& hrec, scatter_record& srec) const {
+		srec.is_specular = false;
+		srec.attenuation = albedo->value(hrec.u, hrec.v, hrec.p);
+		srec.pdf_ptr = new cosine_pdf(hrec.normal);
 		return true;
 	}
 

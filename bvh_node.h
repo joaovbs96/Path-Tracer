@@ -11,6 +11,8 @@ class bvh_node : public hitable {
 		
 		virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
 		virtual bool bounding_box(float t0, float t1, aabb& box) const;
+		virtual float pdf_value(const vec3& o, const vec3& v) const;
+		virtual vec3 random(const vec3& o) const;
 
 		hitable *left, *right;
 		aabb box;
@@ -93,7 +95,7 @@ int box_z_compare(const void * a, const void * b) {
 }
 
 bvh_node::bvh_node(hitable **l, int n, float time0, float time1) {
-	int axis = int(3 * randomNumber());
+	int axis = int(3 * RFG());
 
 	if (axis == 0)
 		qsort(l, n, sizeof(hitable *), box_x_compare);
@@ -119,6 +121,17 @@ bvh_node::bvh_node(hitable **l, int n, float time0, float time1) {
 		std::cerr << "no bounding box in bvh_node constructor" << std::endl;
 
 	box = surrounding_box(box_left, box_right);
+}
+
+float bvh_node::pdf_value(const vec3& o, const vec3& v) const {
+	return (left->pdf_value(o, v) + right->pdf_value(o, v)) / 2;
+}
+
+vec3 bvh_node::random(const vec3& o) const {
+	if (RFG() > 0.5) // right
+		return right->random(o);
+	else // left
+		return left->random(o);
 }
 
 #endif // !BVHNODEH

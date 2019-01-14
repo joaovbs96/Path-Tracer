@@ -5,24 +5,49 @@ struct hit_record;
 
 #include "ray.h"
 #include "hitable.h"
+#include "pdf.h"
 
 vec3 random_in_unit_sphere() {
-	float z = randomNumber() * 2.0f - 1.0f;
-	float t = randomNumber() * 2.0f * 3.1415926f;
+	float z = RFG() * 2.0f - 1.0f;
+	float t = RFG() * 2.0f * 3.1415926f;
 	float r = sqrt((0.0 > (1.0f - z * z) ? 0.0 : (1.0f - z * z)));
 	float x = r * cos(t);
 	float y = r * sin(t);
 	vec3 res(x, y, z);
-	res *= pow(randomNumber(), 1.0 / 3.0);
+	res *= pow(RFG(), 1.0 / 3.0);
 	return res;
 }
 
+vec3 random_on_unit_sphere() {
+	float z = RFG() * 2.0f - 1.0f;
+	float t = RFG() * 2.0f * 3.1415926f;
+	float r = sqrt((0.0 > (1.0f - z * z) ? 0.0 : (1.0f - z * z)));
+	float x = r * cos(t);
+	float y = r * sin(t);
+	vec3 res(x, y, z);
+	res *= pow(RFG(), 1.0 / 3.0);
+	return unit_vector(res);
+}
+
+struct scatter_record {
+	ray specular_ray;
+	bool is_specular;
+	vec3 attenuation;
+	pdf *pdf_ptr;
+};
+
 class material {
 public:
-	virtual bool scatter(const ray& r_in, const hit_record& rec, vec3& attenuation, ray& scattered) const = 0;
+	virtual bool scatter(const ray& r_in, const hit_record& hrec, scatter_record& srec) const {
+		return false;
+	}
 
-	virtual vec3 emitted(float u, float v, const vec3& p) const {
-		return vec3(0, 0, 0);
+	virtual float scattering_pdf(const ray& r_in, const hit_record& rec, const ray& scattered) const {
+		return 0.0;
+	}
+
+	virtual vec3 emitted(const ray& r_in, const hit_record& rec, float u, float v, const vec3& p) const { 
+		return vec3(0, 0, 0); 
 	}
 };
 

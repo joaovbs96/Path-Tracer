@@ -13,59 +13,70 @@ public:
 		e1 = b - a;
 		e2 = c - a;
 
+		normal = cross(e1, e2);
+		normal = unit_vector(normal);
+
 		d = dot(normal, a);
 	};
 
 	virtual bool hit(const ray& r, float tmin, float t_max, hit_record&) const;
 	virtual bool bounding_box(float t0, float t1, aabb& box) const;
+	
+	virtual float pdf_value(const vec3& o, const vec3& v) const {
+		hit_record rec;
+
+		if (this->hit(ray(o, v), 0.001, FLT_MAX, rec)) {
+			float area = rec.normal.length() * 0.5;
+			float distance_squared = rec.t * rec.t * v.squared_length();
+			float cosine = fabs(dot(v, rec.normal) / v.length());
+
+			return distance_squared / (cosine * area);
+		}
+		else
+			return 0;
+	}
+
+	virtual vec3 random(const vec3& o) const;
 
 	vec3 a, b, c;
 	vec3 e1, e2;
 	vec3 normal; // face/plane normal
+	float area;
 	float d;
 	float scale;
 	material *mat_ptr;
 };
 
 bool triangle::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-	vec3 q = cross(r.direction(), e2);
-	float aNum = dot(e1, q);
+	vec3 pvec = cross(r.direction(), e2);
+	float aNum = dot(pvec, e1);
 
 	// Backfacing / nearly parallel, or close to the limit of precision ?
-	if (((abs(dot(normal, r.direction()))) < (1e-7)) || (abs(aNum) <= (1e-7))) { // two sided triangle
-		return false;
-	}
-
-	vec3 s = (r.origin() - a) / aNum;
-	vec3 rVec = cross(s, e1);
-
-	// 'intersected outside triangle'
-	float barB = dot(s, q);
-	if (barB < 0.0)
-		return false;
-	
-	float barC = dot(rVec, r.direction());
-	if (barC < 0.0)
+	if (abs(aNum) < 1E-8)
 		return false;
 
-	float barA = 1.0 - barB - barC;
-	if (barA < 0.0)
+	vec3 tvec = r.origin() - a;
+	float u = dot(pvec, tvec) / aNum;
+	if (u < 0.0 || u > 1.0) 
+		return false;
+
+	vec3 qVec = cross(tvec, e1);
+	float v = dot(qVec, r.direction()) / aNum;
+	if (v < 0.0 || u + v > 1.0) 
+		return false;
+
+	float t = dot(qVec, e2) / aNum;
+	if (t < t_min || t > t_max) 
 		return false;
 
 	// valid intersection
-	float temp = dot(e2, rVec);
-	if (temp < t_max && temp > t_min) {
-		rec.u = (a.u() * barA + b.u() * barB + c.u() * barC);
-		rec.v = (a.v() * barA + b.v() * barB + c.v() * barC);
-		rec.t = temp;
-		rec.p = r.point_at_parameter(rec.t);
-		rec.normal = normal;
-		rec.mat_ptr = mat_ptr;
-		return true;
-	}
-	
-	return false;
-
+	rec.u = (a.u() * (1.0 - u - v) + b.u() * u + c.u() * v);
+	rec.v = (a.v() * (1.0 - u - v) + b.v() * u + c.v() * v);
+	rec.t = t;
+	rec.p = r.point_at_parameter(rec.t);
+	rec.normal = normal;
+	rec.mat_ptr = mat_ptr;
+	return true;
 }
 
 bool triangle::bounding_box(float t0, float t1, aabb& box) const{
@@ -80,9 +91,19 @@ bool triangle::bounding_box(float t0, float t1, aabb& box) const{
 	float maxY = ffmax(ffmax(a.y(), b.y()), c.y());
 	float maxZ = ffmax(ffmax(a.z(), b.z()), c.z());
 
-	box = aabb((vec3(minX, minY, minZ)), (vec3(maxX, maxY, maxZ)));
+	box = aabb((vec3(minX - 0.0001, minY - 0.0001, minZ - 0.0001)), (vec3(maxX + 0.0001, maxY + 0.0001, maxZ + 0.0001)));
 
 	return true;
+}
+
+vec3 triangle::random(const vec3& o) const {
+	float r1 = RFG();
+	float r2 = RFG();
+	float sr1 = sqrt(r1);
+
+	vec3 randomPoint((1.0 - sr1) * a + sr1 * (1.0 - r2) * b + sr1 * r2 * c);
+
+	return randomPoint - o;
 }
 
 #endif // ! TRIANGLEH

@@ -6,9 +6,9 @@
 #include "ray.h"
 
 vec3 random_in_unit_disk() {
-	float a = randomNumber() * 2.0f * 3.1415926f;
+	float a = RFG() * 2.0f * 3.1415926f;
 	vec3 xy(sin(a), cos(a), 0);
-	xy *= sqrt(randomNumber());
+	xy *= sqrt(RFG());
 	return xy;
 }
 
@@ -42,7 +42,7 @@ public:
 
 		vec3 rd = lens_radius * random_in_unit_disk();
 		vec3 offset = u * rd.x() + v * rd.y();
-		float time = time0 + randomNumber() * (time1 - time0);
+		float time = time0 + RFG() * (time1 - time0);
 		return ray(origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset, time);
 	}
 

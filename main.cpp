@@ -9,6 +9,10 @@
 
 #include "camera.h"
 
+#include "cosine_pdf.h"
+#include "hitable_pdf.h"
+#include "mixture_pdf.h"
+
 #include "bvh_node.h"
 #include "hitable_list.h"
 #include "moving_sphere.h"
@@ -43,29 +47,38 @@
 std::mutex mtx;
 float completed_threads;
 
-float clamp(float value) {
-	return value > 1.0 ? 1.0 : value;
-}
-
-vec3 color(const ray& r, hitable *world, int depth, bool light) {
-	hit_record rec;
+vec3 color(const ray& r, hitable *world, hitable *light_shape, int depth, bool light) {
+	hit_record hrec;
 
 	// world->hit iterate through scene objs to find if there was a hit/intersection.
-	if (world->hit(r, 0.001, FLT_MAX, rec)) {
+	if (world->hit(r, 0.001, FLT_MAX, hrec)) {
 		// if there's a hit, ray can be scattered or absorbed.
-		ray scattered;
-		vec3 attenuation;
-		vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+		scatter_record srec;
+		vec3 emitted = hrec.mat_ptr->emitted(r, hrec, hrec.u, hrec.v, hrec.p);
 
 		// Ray is scattered/dispersed. Scatter behavior is material dependent.
-		if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) {
-			return emitted + attenuation * color(scattered, world, depth + 1, light); // recursive/bounce
+		if (depth < 50 && hrec.mat_ptr->scatter(r, hrec, srec)) {
+			
+			if (srec.is_specular)
+				return srec.attenuation * color(srec.specular_ray, world, light_shape, depth + 1, light);
+			else {
+				hitable_pdf plight(light_shape, hrec.p);
+				mixture_pdf p(&plight, srec.pdf_ptr);
+
+				ray scattered = ray(hrec.p, p.generate(), r.time());
+				float pdf = p.value(scattered.direction());
+				delete srec.pdf_ptr;
+
+				return emitted + srec.attenuation * hrec.mat_ptr->scattering_pdf(r, hrec, scattered)
+					* color(scattered, world, light_shape, depth + 1, light) / pdf; // recursive/bounce
+			}
 		}
-		else { // ray is fully absorbed.
+		else // ray is fully absorbed.
 			return emitted;
-		}
+
 	}
 	else { // if the ray doesn't intersect anything, return 'background color'.
+		
 		if (light) { // sky
 			vec3 unit_direction = unit_vector(r.direction());
 			float t = 0.5 * (unit_direction.y() + 1.0);
@@ -76,8 +89,8 @@ vec3 color(const ray& r, hitable *world, int depth, bool light) {
 	}
 }
 
-hitable *load_and_convert(std::string filename, std::string assets_folder, float scale=1.0) {
-	hitable **list = new hitable*[50000];
+hitable *load_and_convert(std::string filename, std::string assets_folder, float scale = 1.0) {
+	hitable **list = new hitable*[50000]; // TODO: usar vectors
 	int l = 0;
 	objl::Loader Loader;
 
@@ -136,9 +149,7 @@ hitable *load_and_convert(std::string filename, std::string assets_folder, float
 					list[l++] = new triangle(a, b, c, n, m, scale);
 				}
 			}
-
-			// otherwise, it's an image texture
-			else {
+			else { // otherwise, it's an image texture
 				int nx, ny, nn;
 				char *fileName = (char*)curMesh.MeshMaterial.map_Kd.c_str();
 				unsigned char *tex_data = stbi_load(fileName, &nx, &ny, &nn, 0);
@@ -202,21 +213,18 @@ hitable *random_scene() {
 	// add spheres
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
-			float choose_mat = randomNumber();
-			vec3 center(a + 0.9 * randomNumber(), 0.2, b + 0.9 * randomNumber());
+			float choose_mat = RFG();
+			vec3 center(a + 0.9 * RFG(), 0.2, b + 0.9 * RFG());
 
 			if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+
 				if (choose_mat < 0.8) { // diffuse/lambertian - chapter 7
 					list[i++] = new sphere(center, 0.2, new lambertian(new constant_texture(
-						vec3(randomNumber() * randomNumber(),
-							randomNumber() * randomNumber(),
-							randomNumber() * randomNumber()))));
+						vec3(RFG() * RFG(), RFG() * RFG(), RFG() * RFG()))));
 				}
 				else if (choose_mat < 0.95) { // metal - chapter 8
 					list[i++] = new sphere(center, 0.2, new metal(new constant_texture(
-						vec3(0.5 * (1 + randomNumber()),
-							 0.5 * (1 + randomNumber()),
-							 0.5 * randomNumber())), 0.5));
+						vec3(0.5 * (1 + RFG()), 0.5 * (1 + RFG()), 0.5 * RFG())), 0.5));
 				}
 				else { // dieletric/glass - chapter 9
 					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
@@ -241,29 +249,24 @@ hitable *random_scene_movement() {
 	int i = 1;
 
 	// add spheres
-	for (int a = -10; a < 10; a++) {
+	for (int a = -10; a < 10; a++)
 		for (int b = -10; b < 10; b++) {
-			float choose_mat = randomNumber();
-			vec3 center(a + 0.9 * randomNumber(), 0.2, b + 0.9 * randomNumber());
+			float choose_mat = RFG();
+			vec3 center(a + 0.9 * RFG(), 0.2, b + 0.9 * RFG());
 
 			if ((center - vec3(4, 0.2, 0)).length() > 0.9) {
+
 				if (choose_mat < 0.8) { // diffuse/lambertian - chapter 7
-					list[i++] = new moving_sphere(center, center + vec3(0, 0.5 * randomNumber(), 0), 0.0, 1.0, 0.2,
-						new lambertian(new constant_texture(
-							vec3(randomNumber() * randomNumber(),
-								randomNumber() * randomNumber(),
-								randomNumber() * randomNumber()))));
+					list[i++] = new moving_sphere(center, center + vec3(0, 0.5 * RFG(), 0), 0.0, 1.0, 0.2,
+						new lambertian(new constant_texture(vec3(RFG() * RFG(), RFG() * RFG(), RFG() * RFG()))));
 				}
-				else if (choose_mat < 0.95) { // metal - chapter 8
+				else if (choose_mat < 0.95) // metal - chapter 8
 					list[i++] = new sphere(center, 0.2, new metal(new constant_texture(
-						vec3(0.5 * (1 + randomNumber()), 0.5 * (1 + randomNumber()), 0.5 * randomNumber())), 0.5));
-				}
-				else { // dieletric/glass - chapter 9
+						vec3(0.5 * (1 + RFG()), 0.5 * (1 + RFG()), 0.5 * RFG())), 0.5));
+				else // dieletric/glass - chapter 9
 					list[i++] = new sphere(center, 0.2, new dielectric(1.5));
-				}
 			}
 		}
-	}
 
 	int nx, ny, nn;
 	unsigned char *tex_data = stbi_load("earth.jpg", &nx, &ny, &nn, 0);
@@ -274,16 +277,16 @@ hitable *random_scene_movement() {
 	return new bvh_node(list, i, 0.0, 1.0);
 }
 
-hitable *model_scene(std::string filename, std::string assets_folder) {
+hitable *model_scene() {
 	hitable **list = new hitable*[50000]; // only works if face count is under 50k
 	list[0] = new sphere(vec3(0, -1000, 0), 1000, new lambertian(new constant_texture(vec3(0.5, 0.5, 0.5))));
 	int l = 1;
 	float scale = 1.0;
 
 	// add model
-	list[l++] = new translate(load_and_convert(filename, assets_folder, 1.0), vec3(0, 0, 0));
+	list[l++] = new translate(load_and_convert("box_stack.obj", "assets/", 1.0), vec3(0, 0, 0));
 
-	//list[i++] = new translate(load_and_convert(filename, assets_folder, 0.2), vec3(20, 0, 0));
+	//list[i++] = new translate(load_and_convert("box_stack.obj", "assets/", 0.2), vec3(20, 0, 0));
 
 	return new bvh_node(list, l, 0.0, 1.0);
 }
@@ -360,13 +363,42 @@ hitable *cornell_box() {
 
 	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'x', green));
 	list[i++] = new aarect(0, 555, 0, 555, 0, 'x', red);
-	list[i++] = new aarect(213, 343, 227, 332, 554, 'y', light);
+	list[i++] = new flip_normals(new aarect(213, 343, 227, 332, 554, 'y', light));
 	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'y', white));
 	list[i++] = new aarect(0, 555, 0, 555, 0, 'y', white);
 	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'z', white));
 
 	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), white), -18), vec3(130, 0, 65));
 	list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15), vec3(265, 0, 295));
+
+	return new bvh_node(list, i, 0.0, 1.0);
+}
+
+hitable *cornell_metal_box() {
+	int i = 0;
+	hitable **list = new hitable*[9];
+
+	material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
+	material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
+	material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
+	material *light = new diffuse_light(new constant_texture(vec3(15, 15, 15)));
+	material *glass = new dielectric(1.5);
+	material *aluminum = new metal(new constant_texture(vec3(0.8, 0.85, 0.88)), 0.0);
+
+	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'x', green));
+	list[i++] = new aarect(0, 555, 0, 555, 0, 'x', red);
+	list[i++] = new flip_normals(new aarect(213, 343, 227, 332, 554, 'y', light));
+	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'y', white));
+	list[i++] = new aarect(0, 555, 0, 555, 0, 'y', white);
+	list[i++] = new flip_normals(new aarect(0, 555, 0, 555, 555, 'z', aluminum));
+	
+	//list[i++] = new translate(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 430, 165), aluminum), 15), vec3(265, 0, 295));
+	list[i++] = new sphere(vec3(190, 90, 190), 90, glass);
+	list[i++] = new translate(new rotate_y(load_and_convert("nam.obj", "", 700.0), 180), vec3(350, 0, 0));
+
+	list[i++] = new sphere(vec3(278, 278, -900), 90, light);
+
+	//list[i++] = new translate(new rotate_z(new rotate_x(new rotate_y(new box(vec3(0, 0, 0), vec3(165, 165, 165), aluminum), -18), -18), -18), vec3(230, 200, 65));
 
 	return new bvh_node(list, i, 0.0, 1.0);
 }
@@ -407,7 +439,7 @@ hitable *final(std::string filename, std::string assets_folder) {
 	material *brown = new lambertian(new constant_texture(vec3(0.7, 0.3, 0.1)));
 
 	int l = 0;
-	
+
 	// light panel
 	list[l++] = new aarect(123, 423, 147, 412, 554, 'y', light);
 
@@ -420,7 +452,7 @@ hitable *final(std::string filename, std::string assets_folder) {
 			float z0 = -1000 + j * w;
 			float y0 = 0;
 			float x1 = x0 + w;
-			float y1 = 100 * (randomNumber() + 0.01);
+			float y1 = 100 * (RFG() + 0.01);
 			float z1 = z0 + w;
 
 			boxlist[b++] = new box(vec3(x0, y0, z0), vec3(x1, y1, z1), ground);
@@ -463,25 +495,25 @@ hitable *final(std::string filename, std::string assets_folder) {
 
 	// box of spheres
 	for (int j = 0; j < 1000; ++j)
-		boxlist2[j] = new sphere(vec3(165 * randomNumber(), 165 * randomNumber(), 165 * randomNumber()), 10, white);
+		boxlist2[j] = new sphere(vec3(165 * RFG(), 165 * RFG(), 165 * RFG()), 10, white);
 	list[l++] = new translate(new rotate_y(new bvh_node(boxlist2, 1000, 0.0, 1.0), 15), vec3(-100, 270, 395));
 
 	return new bvh_node(list, l, 0.0, 1.0);
 }
 
-void thread_func(int i, int j, int w, int h, int samples, camera cam, hitable *world, unsigned char *arr, bool light) {
+void thread_func(int i, int j, int w, int h, int samples, camera cam, hitable *world, hitable *light_source, unsigned char *arr, bool light) {
 	std::stringstream ss;
 	ss << std::this_thread::get_id();
 	s_RndState = std::stoull(ss.str());
-	
+
 	vec3 col(0, 0, 0);
 
 	// for each sample
 	for (int s = 0; s < samples; ++s) {
 		// each sample has a random offset from
 		// the pixel's lower left corner, obtained by:
-		float u = float(i + randomNumber()) / float(w);
-		float v = float(j + randomNumber()) / float(h);
+		float u = float(i + RFG()) / float(w);
+		float v = float(j + RFG()) / float(h);
 
 		// (u, v) are always inside the pixel (i, j)
 
@@ -489,7 +521,7 @@ void thread_func(int i, int j, int w, int h, int samples, camera cam, hitable *w
 		ray r = cam.get_ray(u, v);
 
 		// get color of ray's 'destination'
-		col += color(r, world, 0, light);
+		col += de_nan(color(r, world, light_source, 0, light));
 	}
 
 	// average sample values
@@ -518,30 +550,36 @@ int main() {
 	completed_threads = 0;
 
 	// main parameters
-	int samples = 10;
-	int scene = 0;
+	int samples = 4000;
+	int scene = 9;
 	bool light = true;
-	std::string output = "output/random_10.png";
+	std::string output = "output/cornell_nam_test_4000.png";
 
 	// setting up camera
 	// default values
-	int w = 4480;
-	int h = 1080;
+	int w = 448;
+	int h = 108;
 	vec3 lookfrom(13, 2, 3);
 	vec3 lookat(0, 0, 0);
 	float dist_to_focus = 10.0;
 	float aperture = 0.0;
 	float vfov = 20.0;
 
-	// create scene
-	hitable * world;
+	hitable * world; // create scene
+	hitable *light_shape = new aarect(213, 343, 227, 332, 554, 'y', 0);
+	hitable *glass_sphere = new sphere(vec3(190, 90, 190), 90, 0);
+	hitable *a[2];
+	a[0] = light_shape;
+	a[1] = glass_sphere;
+	hitable_list hlist(a, 2);
+
 	switch (scene) {
 	case 0: // In One Weekend test scene
 		world = random_scene();
 		break;
 
 	case 1: // model loader test scene
-		world = model_scene("box_stack.obj", "assets/");
+		world = model_scene();
 		break;
 
 	case 2: // diffuse light test #1
@@ -571,10 +609,10 @@ int main() {
 	case 6: // cornell box
 		world = cornell_box();
 
-		w = 500;
-		h = 500;
+		w = 300;
+		h = 300;
 		light = false;
-		
+
 		lookfrom = vec3(278, 278, -800);
 		lookat = vec3(278, 278, 0);
 		vfov = 40.0;
@@ -589,14 +627,27 @@ int main() {
 
 	case 8: // final scene
 		world = final("Lowpoly_tree_sample.obj", "assets/");
-		
+
 		w = 500;
 		h = 500;
 		light = false;
 		vfov = 40.0;
-		
+
 		lookfrom = vec3(478, 278, -600);
 		lookat = vec3(278, 278, 0);
+
+		break;
+
+	case 9:
+		world = cornell_metal_box();
+
+		w = 300;
+		h = 300;
+		light = false;
+
+		lookfrom = vec3(278, 278, -800);
+		lookat = vec3(278, 278, 0);
+		vfov = 40.0;
 		
 		break;
 
@@ -615,7 +666,7 @@ int main() {
 	std::vector<std::thread> v;
 	for (int j = h - 1; j >= 0; j--)
 		for (int i = 0; i < w; i++)
-			v.push_back(std::thread(thread_func, i, j, w, h, samples, cam, world, arr, light));
+			v.push_back(std::thread(thread_func, i, j, w, h, samples, cam, world, &hlist, arr, light));
 	std::for_each(v.begin(), v.end(), do_join);
 
 	// save image

@@ -80,14 +80,14 @@ static vec3* perlin_generate() {
 	vec3 *p = new vec3[256];
 
 	for (int i = 0; i < 256; ++i)
-		p[i] = unit_vector(vec3(-1 + 2 * randomNumber(), -1 + 2 * randomNumber(), -1 + 2 * randomNumber()));
+		p[i] = unit_vector(vec3(-1 + 2 * RFG(), -1 + 2 * RFG(), -1 + 2 * RFG()));
 
 	return p;
 }
 
 void permute(int *p, int n) {
 	for (int i = n - 1; i > 0; i--) {
-		int target = int(randomNumber() * (i + 1));
+		int target = int(RFG() * (i + 1));
 		int tmp = p[i];
 
 		p[i] = p[target];

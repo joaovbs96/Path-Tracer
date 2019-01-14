@@ -7,12 +7,14 @@
 #include <float.h>
 #include <random>
 
+#define M_PI 3.14159265358979323846264338327950288
+
 // Random Generators
 thread_local uint32_t s_RndState = 1;
 
-// XorShift32 & randomNumber by Aras Pranckevicius
+// XorShift32(RIG) & randomNumber(RFG) by Aras Pranckevicius
 // source: https://github.com/aras-p/ToyPathTracer/blob/master/Cpp/Source/Maths.cpp#L5-L18
-static uint32_t XorShift32() {
+static uint32_t RIG() { // random int generator
 	uint32_t x = s_RndState;
 	x ^= x << 13;
 	x ^= x >> 17;
@@ -21,8 +23,12 @@ static uint32_t XorShift32() {
 	return x;
 }
 
-float randomNumber() {
-	return (XorShift32() & 0xFFFFFF) / 16777216.0f;
+float RFG() { // random float generator
+	return (RIG() & 0xFFFFFF) / 16777216.0f;
+}
+
+inline float clamp(float value) {
+	return value > 1.0 ? 1.0 : value;
 }
 
 class vec3 {
@@ -224,6 +230,40 @@ inline vec3& vec3::operator/=(const float t) {
 
 inline vec3 unit_vector(vec3 v) {
 	return v / v.length();
+}
+
+inline vec3 random_cosine_direction() {
+	float r1 = RFG();
+	float r2 = RFG();
+	
+	float phi = 2 * M_PI * r1;
+	
+	float x = cos(phi) * 2 * sqrt(r2);
+	float y = sin(phi) * 2 * sqrt(r2);
+	float z = sqrt(1 - r2);
+
+	return vec3(x, y, z);
+}
+
+inline vec3 random_to_sphere(float radius, float distance_squared) {
+	float r1 = RFG();
+	float r2 = RFG();
+
+	float phi = 2 * M_PI * r1;
+
+	float z = 1 + r2 * (sqrt(1 - radius * radius / distance_squared) - 1);
+	float x = cos(phi) * sqrt(1 - z * z);
+	float y = sin(phi) * sqrt(1 - z * z);
+
+	return vec3(x, y, z);
+}
+
+inline vec3 de_nan(const vec3& c) {
+	vec3 temp = c;
+	if (!(temp[0] == temp[0])) temp[0] = 0;
+	if (!(temp[1] == temp[1])) temp[1] = 0;
+	if (!(temp[2] == temp[2])) temp[2] = 0;
+	return temp;
 }
 
 #endif
