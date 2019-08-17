@@ -18,16 +18,6 @@ class float3 {
   inline float3& operator*=(const float t);
   inline float3& operator/=(const float t);
 
-  inline float length() const { return sqrt(x * x + y * y + z * z); }
-  inline float squared_length() const { return x * x + y * y + z * z; }
-
-  inline void normalize() {
-    float k = 1.0f / length();
-    x *= k;
-    y *= k;
-    z *= k;
-  }
-
   float x, y, z;
 };
 
@@ -111,4 +101,16 @@ inline float3 cross(const float3& v0, const float3& v1) {
   float y = -v0.x * v1.z + v0.z * v1.x;
   float z = v0.x * v1.y - v0.y * v1.x;
   return float3(x, y, z);
+}
+
+inline float length(const float3& v) {
+  return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+}
+inline float squared_length(const float3& v) {
+  return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+
+inline float3 normalize(const float3& v) {
+  float k = 1.0f / length(v);
+  return v * k;
 }
