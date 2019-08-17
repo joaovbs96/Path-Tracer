@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string>
 
+#include "float3.hpp"
+
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_IMPLEMENTATION
 #include "lib/stb_image.h"
@@ -26,6 +28,14 @@ class Framebuffer {
     data_[idx + 0] = r;
     data_[idx + 1] = g;
     data_[idx + 2] = b;
+  }
+
+  // Converts color to uint8 and set pixel [row, column] to color (r, g, b)
+  void set_pixel(size_t row, size_t column, float3 color) {
+    const size_t idx = colorChannels * (row * width_ + column);
+    data_[idx + 0] = uint8_t(255.99f * color.x);  // r
+    data_[idx + 1] = uint8_t(255.99f * color.y);  // g
+    data_[idx + 2] = uint8_t(255.99f * color.z);  // b
   }
 
   // Save framebuffer to .PNG file

@@ -10,8 +10,8 @@ int main() {
     for (size_t c = 0; c < fb.width(); c++) {
       float ir = float(c) / float(fb.width());
       float ig = float(r) / float(fb.height());
-      float ib = 0.2;
-      fb.set_pixel(r, c, ir, ig, ib);
+      float ib = 0.2f;
+      fb.set_pixel(r, c, float3(ir, ig, ib));
     }
   }
 
