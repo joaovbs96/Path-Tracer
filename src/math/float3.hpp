@@ -5,6 +5,7 @@
 
 class float3 {
  public:
+  float3() : x(0.0f), y(0.0f), z(0.0f) {}
   float3(float x_, float y_, float z_) : x(x_), y(y_), z(z_) {}
   float3(float xyz_) : x(xyz_), y(xyz_), z(xyz_) {}
 
@@ -104,7 +105,7 @@ inline float3 cross(const float3& v0, const float3& v1) {
 }
 
 inline float length(const float3& v) {
-  return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+  return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 inline float squared_length(const float3& v) {
   return v.x * v.x + v.y * v.y + v.z * v.z;

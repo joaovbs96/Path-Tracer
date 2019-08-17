@@ -13,9 +13,9 @@
 
 class Framebuffer {
  public:
-  static constexpr size_t colorChannels = 3;
+  static constexpr int colorChannels = 3;
 
-  Framebuffer(size_t width, size_t height)
+  Framebuffer(int width, int height)
       : width_(width),
         height_(height),
         data_((unsigned char *)malloc(width * height * colorChannels)) {}
@@ -23,16 +23,16 @@ class Framebuffer {
   ~Framebuffer() { free(data_); }
 
   // Set pixel [row, col] to color (r, g, b)
-  void set_pixel(size_t row, size_t column, uint8_t r, uint8_t g, uint8_t b) {
-    const size_t idx = colorChannels * (row * width_ + column);
+  void set_pixel(int row, int column, uint8_t r, uint8_t g, uint8_t b) {
+    const int idx = colorChannels * (row * width_ + column);
     data_[idx + 0] = r;
     data_[idx + 1] = g;
     data_[idx + 2] = b;
   }
 
   // Converts color to uint8 and set pixel [row, column] to color (r, g, b)
-  void set_pixel(size_t row, size_t column, float3 color) {
-    const size_t idx = colorChannels * (row * width_ + column);
+  void set_pixel(int row, int column, float3 color) {
+    const int idx = colorChannels * (row * width_ + column);
     data_[idx + 0] = uint8_t(255.99f * color.x);  // r
     data_[idx + 1] = uint8_t(255.99f * color.y);  // g
     data_[idx + 2] = uint8_t(255.99f * color.z);  // b
@@ -40,14 +40,14 @@ class Framebuffer {
 
   // Save framebuffer to .PNG file
   int save(const char *file_name) {
-    return stbi_write_png(file_name, width_, height_, 3, data_, 0);
+    return stbi_write_png(file_name, width_, height_, colorChannels, data_, 0);
   }
 
-  size_t width() { return width_; }
-  size_t height() { return height_; }
+  int width() { return width_; }
+  int height() { return height_; }
 
  private:
   unsigned char *data_;
-  size_t width_;
-  size_t height_;
+  int width_;
+  int height_;
 };
