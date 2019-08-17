@@ -3,9 +3,13 @@
 #include <stdlib.h>
 
 #include "framebuffer.hpp"
+#include "geometry/sphere.hpp"
 #include "ray.hpp"
 
 float3 get_color(const Ray& r) {
+  Sphere obj(float3(0.0f, 0.0f, -1.0f), 0.5f);
+  if (obj.hit(r)) return float3(1.0f, 0.0f, 0.0f);
+
   float t = 0.5f * (r.direction().y + 1.0f);
   return (1.0f - t) * float3(1.0f) + t * float3(0.5f, 0.7f, 1.0f);
 }

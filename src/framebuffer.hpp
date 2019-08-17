@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <string>
 
-#include "float3.hpp"
+#include "math/float3.hpp"
 
 #define STBI_MSC_SECURE_CRT
 #define STB_IMAGE_IMPLEMENTATION
