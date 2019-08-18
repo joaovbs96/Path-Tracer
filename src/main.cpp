@@ -3,9 +3,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "camera.hpp"
 #include "framebuffer.hpp"
 #include "geometry/geometry_list.hpp"
 #include "geometry/sphere.hpp"
+#include "math/rng.hpp"
 #include "ray.hpp"
 
 float3 get_color(const Ray& r, Geometry* scene) {
@@ -18,14 +20,13 @@ float3 get_color(const Ray& r, Geometry* scene) {
 }
 
 int main() {
+  int samples = 100;
   stbi_flip_vertically_on_write(1);
+  unsigned int seed = tea<64>(2, 5);
+
+  Camera cam(float3(0.f), 4.0f, 2.0f);
 
   Framebuffer fb(200, 100);
-
-  float3 lower_left(-2.0f, -1.0f, -1.0f);
-  float3 horizontal(4.0f, 0.0f, 0.0f);
-  float3 vertical(0.0f, 2.0f, 0.0f);
-  float3 origin(0.0f);
 
   Geometry_List scene{new Sphere(float3(0.0f, 0.0f, -1.0f), 0.5f),
                       new Sphere(float3(0.0f, -100.5f, -1.0f), 100.0f)};
@@ -34,13 +35,16 @@ int main() {
 
   for (int r = 0; r < fb.height(); r++) {
     for (int c = 0; c < fb.width(); c++) {
-      float u = float(c) / float(fb.width());
-      float v = float(r) / float(fb.height());
+      float3 color;
+      for (int s = 0; s < samples; s++) {
+        float u = float(c + rnd(seed)) / float(fb.width());
+        float v = float(r + rnd(seed)) / float(fb.height());
 
-      Ray ray(origin, lower_left + u * horizontal + v * vertical);
-      float3 color = get_color(ray, &scene);
+        Ray ray = cam.make_ray(u, v);
+        color += get_color(ray, &scene);
+      }
 
-      fb.set_pixel(r, c, color);
+      fb.set_pixel(r, c, color / float(samples));
     }
   }
 
