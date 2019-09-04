@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/float3.hpp"
+#include "../math/float3.hpp"
 
 class Ray {
  public:

@@ -1,12 +1,7 @@
 #pragma once
 
-#include "../ray.hpp"
-
-struct Hit_Record {
-  float t;
-  float3 p;
-  float3 normal;
-};
+#include "../utils/prd.hpp"
+#include "../utils/ray.hpp"
 
 class Geometry {
  public:

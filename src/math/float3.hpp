@@ -104,6 +104,10 @@ inline float3 cross(const float3& v0, const float3& v1) {
   return float3(x, y, z);
 }
 
+inline float3 sqrt(const float3& v) {
+  return float3(sqrtf(v.x), sqrtf(v.y), sqrtf(v.z));
+}
+
 inline float length(const float3& v) {
   return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z);
 }

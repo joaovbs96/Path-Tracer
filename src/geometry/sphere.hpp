@@ -5,8 +5,8 @@
 
 class Sphere : public Geometry {
  public:
-  Sphere(const float3& center, float radius)
-      : center_(center), radius_(radius) {}
+  Sphere(const float3& center, float radius, Brdf* material)
+      : center_(center), radius_(radius), material_(material) {}
 
   bool hit(const Ray& r, Hit_Record& hit_rec, float t_min,
            float t_max) const override {
@@ -29,6 +29,7 @@ class Sphere : public Geometry {
       hit_rec.t = t;
       hit_rec.p = r.point_at(t);
       hit_rec.normal = normalize(hit_rec.p - center_);
+      hit_rec.brdf = material_;
       return true;
     }
 
@@ -38,6 +39,7 @@ class Sphere : public Geometry {
       hit_rec.t = t;
       hit_rec.p = r.point_at(t);
       hit_rec.normal = normalize(hit_rec.p - center_);
+      hit_rec.brdf = material_;
       return true;
     }
 
@@ -47,4 +49,5 @@ class Sphere : public Geometry {
  private:
   float3 center_;
   float radius_;
+  Brdf* material_;
 };
