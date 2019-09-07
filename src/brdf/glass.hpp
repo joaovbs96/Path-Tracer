@@ -10,7 +10,6 @@ class Glass : public Brdf {
                         uint& seed) const {
     float3 nn = n;
     float3 wo_ = -wo;
-    float ni_over_nt;
     float cosine = dot(wo_, nn);
     bool is_refracted = false;
     float3 refracted;
