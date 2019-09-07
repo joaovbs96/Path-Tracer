@@ -23,3 +23,6 @@ inline int squared(const int& a) { return a * a; }
 
 inline float radians(float deg) { return (PI / 180.f) * deg; }
 inline float degrees(float rad) { return (180.f / PI) * rad; }
+
+// returns x if it falls into [0, 1], 0 if x < 0, 1 if x > 1
+float saturate(float x) { return fmaxf(0.f, fminf(1.f, x)); }

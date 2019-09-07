@@ -5,11 +5,14 @@
 
 class Camera {
  public:
+  Camera() {}
+
   Camera(const float3 &lookfrom,  // where camera is looking from
          const float3 &lookat,    // where camera is looking at
-         float vfov,        // vertical field of view(top to bottom in degrees)
-         float aspect,      // aspect ratio
-         float aperture) {  // camera aperrtura(blur)
+         const float vfov,  // vertical field of view(top to bottom in degrees)
+         const float aspect,        // aspect ratio
+         const float aperture,      // camera aperrtura(blur)
+         const float focus_dist) {  // distance to focus
     origin_ = lookfrom;
 
     lens_radius_ = aperture / 2.0f;
@@ -23,7 +26,6 @@ class Camera {
     u_ = normalize(cross(vup, w_));
     v_ = cross(w_, u_);
 
-    const float focus_dist = length(lookfrom - lookat);
     lower_left_ = origin_ - focus_dist * (half_w * u_ + half_h * v_ + w_);
     horizontal_ = 2.0f * half_w * focus_dist * u_;
     vertical_ = 2.0f * half_h * focus_dist * v_;

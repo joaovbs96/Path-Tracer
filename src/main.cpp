@@ -14,6 +14,7 @@
 #include "utils/camera.hpp"
 #include "utils/framebuffer.hpp"
 #include "utils/ray.hpp"
+#include "utils/scenes.hpp"
 
 float3 trace(Ray& r, Geometry* scene, uint& seed) {
   float3 throughput = float3(1.0f);
@@ -55,21 +56,11 @@ int main() {
   unsigned int seed = tea<64>(2, 5);
   const int width = 200, height = 100;
 
-  Camera cam(float3(3.0f, 3.0f, 2.0f), float3(0.0f, 0.0f, -1.0f), 20,
-             float(width / height), 4.0f);
-
   Framebuffer fb(width, height);
+  Camera cam;
+  Geometry_List scene;
 
-  Geometry_List scene{new Sphere(float3(0.0f, 0.0f, -1.0f), 0.5f,
-                                 new Lambertian(float3(0.6f, 0.3f, 0.3f))),
-                      new Sphere(float3(0.0f, -100.5f, -1.0f), 100.0f,
-                                 new Lambertian(float3(0.8f, 0.8f, 0.0f)))};
-
-  scene.add(new Sphere(float3(1.0f, 0.0f, -1.0f), 0.5f,
-                       new Metal(float3(0.8f, 0.6f, 0.2f))));
-
-  scene.add(new Sphere(float3(-1.0f, 0.0f, -1.0f), 0.5f,
-                       new Glass(float3(1.f), 1.5f)));
+  In_One_Weekend(scene, cam, width, height, seed);
 
   auto t0 = std::chrono::system_clock::now();
 
@@ -86,7 +77,9 @@ int main() {
 
       fb.set_pixel(r, c, sqrt(color / float(samples)));
     }
+    printf("Progress: %.2f% \r", 100 * (float(r) / height));
   }
+  printf("\n");
 
   fb.save("output.png");
 
