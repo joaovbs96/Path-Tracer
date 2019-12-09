@@ -77,7 +77,7 @@ int main() {
 
       fb.set_pixel(r, c, sqrt(color / float(samples)));
     }
-    printf("Progress: %.2f% \r", 100 * (float(r) / height));
+    printf("Progress: %.2f \r", 100 * (float(r) / height));
   }
   printf("\n");
 
