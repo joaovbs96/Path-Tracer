@@ -2,3 +2,4 @@ Path-Tracer.code-workspace
 build
 .vscode
 *.code-workspace
+src/lib
